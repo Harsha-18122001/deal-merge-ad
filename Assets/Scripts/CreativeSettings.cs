@@ -38,6 +38,8 @@ public class CreativeSettings : ScriptableObject
     public float CardJumpHeight { get => cardJumpHeight; }
     public float CardJumpDuration { get => cardJumpDuration; }
     public float CardJumpInterval { get => cardJumpInterval; }
+    public ColorType[] SpawnableColors => spawnableColors;
+    public ColorType[] AllColors => allColors;
     [SerializeField] private ColorType[] spawnableColors;
     [SerializeField] private ColorType[] allColors;
     public int GetColorIndex(ColorType colorType)

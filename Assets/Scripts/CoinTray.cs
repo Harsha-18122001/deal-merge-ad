@@ -8,6 +8,8 @@ public class CoinTray : MonoBehaviour
     static List<CoinTray> allTrays = new();
     [SerializeField] List<ColorType> colorTypes;
     [SerializeField] List<Coin> coins;
+    public List<Coin> Coins => coins;
+    public List<ColorType> ColorTypes => colorTypes;
     [SerializeField] Transform startPosition;
     [SerializeField] Vector3 stackDirection, eulerRotation;
     [SerializeField] float stackHeightOffset = 0.1f;
@@ -403,6 +405,25 @@ public class CoinTray : MonoBehaviour
         }
         UnityEditor.EditorUtility.SetDirty(this);
     }
+    [EditorButton("Randomize Colors")]
+    public void RandomizeColors()
+    {
+        if (coins == null || coins.Count == 0) return;
+        for (int i = 0; i < coins.Count; i++)
+        {
+            if (coins[i] == null) continue;
+            ColorType randomColor = CreativeSettings.Instance.GetRandomColorType();
+            UnityEditor.Undo.RecordObject(coins[i], "Randomize Coin Color");
+            UnityEditor.Undo.RecordObject(this, "Randomize Tray Colors");
+            coins[i].SetColorType(randomColor);
+            if (colorTypes != null && i < colorTypes.Count)
+            {
+                colorTypes[i] = randomColor;
+            }
+        }
+        UnityEditor.EditorUtility.SetDirty(this);
+    }
+
     [EditorButton("Clear Stack")]
     private void ClearStack()
     {
