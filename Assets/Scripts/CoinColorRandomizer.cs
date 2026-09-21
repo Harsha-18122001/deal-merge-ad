@@ -16,21 +16,24 @@ public class CoinColorRandomizer : MonoBehaviour
     }
 
     [Header("Range Configuration")]
-    [Tooltip("Minimum color number (e.g. 1).")]
-    [SerializeField, Range(1, 8)] private int minColor = 1;
+    [Tooltip("Minimum color number (1 to 8).")]
+    [SerializeField, Min(1)] private int minColor = 1;
 
-    [Tooltip("Maximum color number (e.g. 8).")]
-    [SerializeField, Range(1, 8)] private int maxColor = 8;
+    [Tooltip("Maximum color number (1 to 8).")]
+    [SerializeField, Min(1)] private int maxColor = 8;
 
     [Header("Adjacent Grouping")]
-    [Tooltip("Ensure at least 2 to 3 adjacent coins in each stack have the same color.")]
+    [Tooltip("Ensure adjacent coins in each stack have the same color.")]
     [SerializeField] private bool groupAdjacentCoins = true;
 
-    [Tooltip("Minimum adjacent coins of the same color.")]
-    [SerializeField, Range(1, 6)] private int minAdjacentCount = 2;
+    [Tooltip("Use Min/Max Adjacent Count configured in CreativeSettings.asset.")]
+    [SerializeField] private bool useCreativeSettingsAdjacent = false;
 
-    [Tooltip("Maximum adjacent coins of the same color.")]
-    [SerializeField, Range(1, 6)] private int maxAdjacentCount = 3;
+    [Tooltip("Minimum adjacent coins of the same color (editable integer >= 1).")]
+    [SerializeField, Min(1)] private int minAdjacentCount = 2;
+
+    [Tooltip("Maximum adjacent coins of the same color (editable integer >= 1).")]
+    [SerializeField, Min(1)] private int maxAdjacentCount = 3;
 
     [Header("Mode & Options")]
     [Tooltip("How colors are assigned to coins and trays.")]
@@ -46,27 +49,41 @@ public class CoinColorRandomizer : MonoBehaviour
     [Tooltip("List of all available ColorType assets (ordered 1 to 8).")]
     [SerializeField] private List<ColorType> colorPool = new();
 
-    public int MinColor { get => minColor; set => minColor = Mathf.Clamp(value, 1, 8); }
-    public int MaxColor { get => maxColor; set => maxColor = Mathf.Clamp(value, 1, 8); }
-    public int MinAdjacentCount { get => minAdjacentCount; set => minAdjacentCount = Mathf.Clamp(value, 1, 6); }
-    public int MaxAdjacentCount { get => maxAdjacentCount; set => maxAdjacentCount = Mathf.Clamp(value, 1, 6); }
+    public int MinColor { get => minColor; set => minColor = Mathf.Max(1, value); }
+    public int MaxColor { get => maxColor; set => maxColor = Mathf.Max(1, value); }
+    public int MinAdjacentCount
+    {
+        get => (useCreativeSettingsAdjacent && CreativeSettings.Instance != null) ? CreativeSettings.Instance.MinAdjacentCount : minAdjacentCount;
+        set => minAdjacentCount = Mathf.Max(1, value);
+    }
+    public int MaxAdjacentCount
+    {
+        get => (useCreativeSettingsAdjacent && CreativeSettings.Instance != null) ? CreativeSettings.Instance.MaxAdjacentCount : maxAdjacentCount;
+        set => maxAdjacentCount = Mathf.Max(1, value);
+    }
     public bool GroupAdjacentCoins { get => groupAdjacentCoins; set => groupAdjacentCoins = value; }
 
     private void Reset()
     {
         LoadAllAvailableColors();
+        if (CreativeSettings.Instance != null)
+        {
+            minAdjacentCount = CreativeSettings.Instance.MinAdjacentCount;
+            maxAdjacentCount = CreativeSettings.Instance.MaxAdjacentCount;
+        }
     }
 
     private void OnValidate()
     {
-        if (minColor > maxColor)
-        {
-            minColor = maxColor;
-        }
+        if (minColor < 1) minColor = 1;
+        if (maxColor < 1) maxColor = 1;
+        if (minAdjacentCount < 1) minAdjacentCount = 1;
+        if (maxAdjacentCount < 1) maxAdjacentCount = 1;
 
-        if (minAdjacentCount > maxAdjacentCount)
+        if (useCreativeSettingsAdjacent && CreativeSettings.Instance != null)
         {
-            minAdjacentCount = maxAdjacentCount;
+            minAdjacentCount = CreativeSettings.Instance.MinAdjacentCount;
+            maxAdjacentCount = CreativeSettings.Instance.MaxAdjacentCount;
         }
 
         if (colorPool == null || colorPool.Count == 0)
@@ -148,7 +165,10 @@ public class CoinColorRandomizer : MonoBehaviour
         List<ColorType> result = new();
         if (totalCount <= 0 || pool == null || pool.Count == 0) return result;
 
-        List<int> clusters = GetClusterSizes(totalCount, minAdjacent, maxAdjacent);
+        int minAdj = Mathf.Min(minAdjacent, maxAdjacent);
+        int maxAdj = Mathf.Max(minAdjacent, maxAdjacent);
+
+        List<int> clusters = GetClusterSizes(totalCount, minAdj, maxAdj);
         ColorType previousColor = null;
 
         foreach (int size in clusters)
@@ -183,9 +203,12 @@ public class CoinColorRandomizer : MonoBehaviour
     {
         List<int> clusters = new();
         int rem = total;
+        int min = Mathf.Min(minSize, maxSize);
+        int max = Mathf.Max(minSize, maxSize);
+
         while (rem > 0)
         {
-            if (rem < minSize)
+            if (rem < min)
             {
                 if (clusters.Count > 0)
                     clusters[clusters.Count - 1] += rem;
@@ -194,15 +217,15 @@ public class CoinColorRandomizer : MonoBehaviour
                 break;
             }
 
-            int s = UnityEngine.Random.Range(minSize, maxSize + 1);
+            int s = UnityEngine.Random.Range(min, max + 1);
             if (rem - s < 0)
             {
                 s = rem;
             }
-            else if (rem - s > 0 && rem - s < minSize)
+            else if (rem - s > 0 && rem - s < min)
             {
-                if (s == maxSize)
-                    s = minSize;
+                if (s == max)
+                    s = min;
                 else
                     s = rem;
             }
@@ -226,6 +249,8 @@ public class CoinColorRandomizer : MonoBehaviour
 
         int min = Mathf.Min(minColor, maxColor);
         int max = Mathf.Max(minColor, maxColor);
+        int effMinAdj = Mathf.Min(MinAdjacentCount, MaxAdjacentCount);
+        int effMaxAdj = Mathf.Max(MinAdjacentCount, MaxAdjacentCount);
 
         // 1. Process all CoinTrays in the scene
         var trays = FindObjectsOfType<CoinTray>(true);
@@ -255,7 +280,7 @@ public class CoinColorRandomizer : MonoBehaviour
             }
             else if (groupAdjacentCoins)
             {
-                trayColors = GenerateAdjacentColors(coins.Count, activeColors, minAdjacentCount, maxAdjacentCount);
+                trayColors = GenerateAdjacentColors(coins.Count, activeColors, effMinAdj, effMaxAdj);
             }
             else
             {
@@ -308,7 +333,7 @@ public class CoinColorRandomizer : MonoBehaviour
             if (standaloneCoins.Count > 0)
             {
                 List<ColorType> standaloneColors = groupAdjacentCoins
-                    ? GenerateAdjacentColors(standaloneCoins.Count, activeColors, minAdjacentCount, maxAdjacentCount)
+                    ? GenerateAdjacentColors(standaloneCoins.Count, activeColors, effMinAdj, effMaxAdj)
                     : null;
 
                 for (int i = 0; i < standaloneCoins.Count; i++)
@@ -335,7 +360,7 @@ public class CoinColorRandomizer : MonoBehaviour
         }
 #endif
 
-        string groupingMsg = groupAdjacentCoins ? $" (clusters of {minAdjacentCount}-{maxAdjacentCount} adjacent)" : "";
+        string groupingMsg = groupAdjacentCoins ? $" (clusters of {effMinAdj}-{effMaxAdj} adjacent)" : "";
         Debug.Log($"[CoinColorRandomizer] Randomized {coinsModified} coins{groupingMsg} (range {min}-{max}) across {traysModified} trays.");
     }
 

@@ -20,6 +20,8 @@ MonoBehaviour:
   jumpDuration: 0.3
   jumpHeight: 2
   dealSpawnCount: 3
+  minAdjacentCount: 2
+  maxAdjacentCount: 3
   colorTypes:
   - {fileID: 11400000, guid: e96c55417ed00e444a2f4b9c7539246f, type: 2}
   - {fileID: 11400000, guid: ed5bae70908d0fc45b2ff870cce91049, type: 2}

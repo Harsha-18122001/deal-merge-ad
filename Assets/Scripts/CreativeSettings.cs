@@ -40,6 +40,10 @@ public class CreativeSettings : ScriptableObject
     public float CardJumpInterval { get => cardJumpInterval; }
     public ColorType[] SpawnableColors => spawnableColors;
     public ColorType[] AllColors => allColors;
+    public int MinAdjacentCount => minAdjacentCount;
+    public int MaxAdjacentCount => maxAdjacentCount;
+    [SerializeField] private int minAdjacentCount = 2;
+    [SerializeField] private int maxAdjacentCount = 3;
     [SerializeField] private ColorType[] spawnableColors;
     [SerializeField] private ColorType[] allColors;
     public int GetColorIndex(ColorType colorType)
