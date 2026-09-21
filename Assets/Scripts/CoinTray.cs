@@ -40,15 +40,25 @@ public class CoinTray : MonoBehaviour
     }
 
     public bool IsLocked => lockSpriteRenderer != null && lockSpriteRenderer.enabled;
-    public static void Merge()
+    public void Merge()
+    {
+        MergeAll();
+    }
+
+    public static void MergeAll()
     {
         foreach (var tray in allTrays)
         {
-            if (tray.CanMerge())
+            if (tray != null && tray.CanMerge())
             {
                 tray.MergeAndSpawn();
             }
         }
+    }
+
+    private void OnDestroy()
+    {
+        allTrays.Remove(this);
     }
 
     private void Start()
@@ -202,19 +212,33 @@ public class CoinTray : MonoBehaviour
             tray.DealCoint(startPosition);
         }
     }*/
-    public static void Deal(Transform startPosition)
+    public void Deal(Transform spawnPoint)
+    {
+        DealAll(spawnPoint != null ? spawnPoint : startPosition);
+    }
+
+    public void Deal()
+    {
+        Deal(startPosition);
+    }
+
+    public static void DealAll(Transform spawnPoint)
     {
         foreach (var tray in allTrays)
         {
-            if (!tray.IsLocked)
+            if (tray != null && !tray.IsLocked)
             {
-                tray.DealCoint(startPosition);
+                tray.DealCoint(spawnPoint);
             }
         }
     }
     public void DealCoint(Transform startPosition)
     {
         if (IsLocked)
+            return;
+        if (startPosition == null)
+            startPosition = this.startPosition;
+        if (startPosition == null)
             return;
         int startIndex = coins.Count;
         float delay = 0.05f;
