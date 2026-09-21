@@ -409,10 +409,15 @@ public class CoinTray : MonoBehaviour
     public void RandomizeColors()
     {
         if (coins == null || coins.Count == 0) return;
+        var randomizer = FindObjectOfType<CoinColorRandomizer>();
+        var pool = (randomizer != null) ? randomizer.GetFilteredColors() : null;
+
         for (int i = 0; i < coins.Count; i++)
         {
             if (coins[i] == null) continue;
-            ColorType randomColor = CreativeSettings.Instance.GetRandomColorType();
+            ColorType randomColor = (pool != null && pool.Count > 0)
+                ? pool[UnityEngine.Random.Range(0, pool.Count)]
+                : CreativeSettings.Instance.GetRandomColorType();
             UnityEditor.Undo.RecordObject(coins[i], "Randomize Coin Color");
             UnityEditor.Undo.RecordObject(this, "Randomize Tray Colors");
             coins[i].SetColorType(randomColor);

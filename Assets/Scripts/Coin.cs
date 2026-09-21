@@ -63,7 +63,7 @@ public class Coin : MonoBehaviour
             return;
         }
 
-        Debug.Log($"Sprite Assigned: {sprites[index].name}");
+        if (index >= 0 && index < sprites.Count && sprites[index] != null) Debug.Log($"Sprite Assigned: {sprites[index].name}");
 
         foreach (var sr in spriteRenderers)
         {
