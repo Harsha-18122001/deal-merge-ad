@@ -400,14 +400,56 @@ public class CoinTray : MonoBehaviour
     [EditorButton("Create Stack")]
     public void CreateStack()
     {
-        ClearStack();
+        ClearCoinObjects();
+
+        // If colorTypes is empty, automatically spawn a random stack!
+        if (colorTypes == null || colorTypes.Count == 0)
+        {
+            SpawnRandomStack();
+            return;
+        }
+
+        if (startPosition == null)
+        {
+            Debug.LogError("[CoinTray] startPosition is not assigned!");
+            return;
+        }
+
+        Coin prefab = CreativeSettings.Instance != null ? CreativeSettings.Instance.CoinPrefab : null;
+        if (prefab == null)
+        {
+            Debug.LogError("[CoinTray] No CoinPrefab assigned in CreativeSettings!");
+            return;
+        }
+
+        if (coins == null) coins = new System.Collections.Generic.List<Coin>();
+
         for (int i = 0; i < colorTypes.Count; i++)
         {
-            Coin newCoin = (Coin)UnityEditor.PrefabUtility.InstantiatePrefab(CreativeSettings.Instance.CoinPrefab, transform);
-            newCoin.transform.position = startPosition.position.GetStackedPosition(i, stackDirection, eulerRotation, stackHeightOffset);
+            if (i >= maxCapacity) break;
+            if (colorTypes[i] == null) continue;
+
+            Vector3 pos = startPosition.position.GetStackedPosition(i, stackDirection, eulerRotation, stackHeightOffset);
+            Quaternion rot = Quaternion.Euler(eulerRotation);
+
+            Coin newCoin;
+            if (!Application.isPlaying)
+            {
+                newCoin = (Coin)UnityEditor.PrefabUtility.InstantiatePrefab(prefab, transform);
+                newCoin.transform.position = pos;
+                newCoin.transform.rotation = rot;
+                UnityEditor.Undo.RegisterCreatedObjectUndo(newCoin.gameObject, "Create Stack");
+            }
+            else
+            {
+                newCoin = Instantiate(prefab, pos, rot, transform);
+            }
+
             newCoin.SetColorType(colorTypes[i]);
             coins.Add(newCoin);
         }
+
+        UpdateMergeOutline();
         UnityEditor.EditorUtility.SetDirty(this);
     }
     [EditorButton("Randomize Colors")]
@@ -418,8 +460,19 @@ public class CoinTray : MonoBehaviour
         var pool = (randomizer != null) ? randomizer.GetFilteredColors() : null;
         if (pool == null || pool.Count == 0)
         {
-            if (CreativeSettings.Instance != null && CreativeSettings.Instance.AllColors != null)
+            if (CreativeSettings.Instance != null && CreativeSettings.Instance.AllColors != null && CreativeSettings.Instance.AllColors.Length > 0)
                 pool = new System.Collections.Generic.List<ColorType>(CreativeSettings.Instance.AllColors);
+        }
+        if (pool == null || pool.Count == 0)
+        {
+#if UNITY_EDITOR
+            pool = new System.Collections.Generic.List<ColorType>();
+            for (int i = 1; i <= 8; i++)
+            {
+                var asset = UnityEditor.AssetDatabase.LoadAssetAtPath<ColorType>($"Assets/ScriptableObject/MoneySort/{i}.asset");
+                if (asset != null) pool.Add(asset);
+            }
+#endif
         }
 
         int minAdj = (randomizer != null) ? randomizer.MinAdjacentCount : 2;
@@ -470,7 +523,7 @@ public class CoinTray : MonoBehaviour
 
     public void SpawnCoins(System.Collections.Generic.List<ColorType> newColors, Coin overridePrefab = null)
     {
-        ClearStack();
+        ClearCoinObjects();
         if (newColors == null || newColors.Count == 0 || startPosition == null) return;
 
         Coin prefab = overridePrefab != null ? overridePrefab : (CreativeSettings.Instance != null ? CreativeSettings.Instance.CoinPrefab : null);
@@ -515,6 +568,13 @@ public class CoinTray : MonoBehaviour
     [EditorButton("Clear Stack")]
     public void ClearStack()
     {
+        ClearCoinObjects();
+        UpdateMergeOutline();
+        UnityEditor.EditorUtility.SetDirty(this);
+    }
+
+    public void ClearCoinObjects()
+    {
         if (coins != null && coins.Count > 0)
         {
             foreach (var coin in coins)
@@ -529,12 +589,6 @@ public class CoinTray : MonoBehaviour
             }
             coins.Clear();
         }
-        if (colorTypes != null)
-        {
-            colorTypes.Clear();
-        }
-        UpdateMergeOutline();
-        UnityEditor.EditorUtility.SetDirty(this);
     }
     private void OnDrawGizmosSelected()
     {
