@@ -1,0 +1,13 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!221 &22100000
+AnimatorOverrideController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: LongBoard
+  m_Controller: {fileID: 9100000, guid: 9dccd29017f4c774c8481cd08b7a1011, type: 2}
+  m_Clips:
+  - m_OriginalClip: {fileID: 7400000, guid: 912079d8233addb4481ab1936a3343e5, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 64794040cdae21048ba7b72b7404eb46, type: 2}

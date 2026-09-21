@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b0ba4a447ddf82e4a99fbefdc12ed44e, type: 3}
+  m_Name: CreativeSettings
+  m_EditorClassIdentifier: 
+  coinPrefab: {fileID: 3768678715413533474, guid: 7d1dd22af0fb32644adc59eb1d19fc3b, type: 3}
+  mergeDuration: 2
+  highlightOffset: 0.5
+  highlightInterval: 0.03
+  cardHalfHeight: 0.5
+  jumpDuration: 0.3
+  jumpHeight: 2
+  dealSpawnCount: 3
+  colorTypes:
+  - {fileID: 11400000, guid: e96c55417ed00e444a2f4b9c7539246f, type: 2}
+  - {fileID: 11400000, guid: ed5bae70908d0fc45b2ff870cce91049, type: 2}
+  - {fileID: 11400000, guid: a67589d61ea3a284894ca0193a25aa10, type: 2}
+  - {fileID: 11400000, guid: 3118cfb0bb16f8f488d3bbec14716cc8, type: 2}
+  cardJumpHeight: 2
+  cardJumpDuration: 10
+  cardJumpInterval: 0.035
+  spawnableColors:
+  - {fileID: 11400000, guid: e96c55417ed00e444a2f4b9c7539246f, type: 2}
+  - {fileID: 11400000, guid: ed5bae70908d0fc45b2ff870cce91049, type: 2}
+  - {fileID: 11400000, guid: a67589d61ea3a284894ca0193a25aa10, type: 2}
+  allColors:
+  - {fileID: 11400000, guid: e96c55417ed00e444a2f4b9c7539246f, type: 2}
+  - {fileID: 11400000, guid: ed5bae70908d0fc45b2ff870cce91049, type: 2}
+  - {fileID: 11400000, guid: a67589d61ea3a284894ca0193a25aa10, type: 2}
+  - {fileID: 11400000, guid: 3118cfb0bb16f8f488d3bbec14716cc8, type: 2}
