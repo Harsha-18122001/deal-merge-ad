@@ -26,6 +26,11 @@ public class CoinTray : MonoBehaviour
     [SerializeField] private SpriteRenderer lockSpriteRenderer;
     [SerializeField] private SpriteRenderer mergeOutline;
 
+    [Header("Coin Scale")]
+    [Tooltip("Scale applied to every coin in this tray. Change this and press 'Apply Scale To All' to update existing coins.")]
+    [SerializeField] private Vector3 coinScale = Vector3.one;
+    public Vector3 CoinScale => coinScale;
+
     [Header("Jump Animation Override")]
     [Tooltip("If checked, this tray will use its own jump settings instead of CreativeSettings")]
     [SerializeField] private bool overrideJumpSettings = false;
@@ -139,12 +144,27 @@ public class CoinTray : MonoBehaviour
         RepositionCoins();
         UpdateMergeOutline();
     }
+    [EditorButton("Apply Scale To All")]
+    public void ApplyScaleToAll()
+    {
+        if (coins == null) return;
+        foreach (var coin in coins)
+        {
+            if (coin != null)
+                coin.transform.localScale = coinScale;
+        }
+#if UNITY_EDITOR
+        UnityEditor.EditorUtility.SetDirty(this);
+#endif
+    }
+
     [EditorButton]
     private void RepositionCoins()
     {
         for (int i = 0; i < coins.Count; i++)
         {
             coins[i].transform.position = startPosition.position.GetStackedPosition(i, stackDirection, eulerRotation, stackHeightOffset);
+            coins[i].transform.localScale = coinScale;
         }
     }
 
@@ -197,7 +217,7 @@ public class CoinTray : MonoBehaviour
                     .SetEase(Ease.Linear)
                     .OnKill(() =>
                     {
-                        coin.transform.localScale = Vector3.one;
+                        coin.transform.localScale = coinScale;
                     })
             );
 
@@ -234,7 +254,7 @@ public class CoinTray : MonoBehaviour
                                    position: GetStackedPosition(startIndex + i),
                                    rotation: Quaternion.Euler(eulerRotation),
                                    parent: transform);
-                    popSeq.Join(coin.transform.DOScale(1, .2f).From(0).SetEase(Ease.OutBack));
+                    popSeq.Join(coin.transform.DOScale(coinScale, .2f).From(Vector3.zero).SetEase(Ease.OutBack));
                     coin.transform.localScale = Vector3.zero;
                     coin.SetColorType(colorType.NextColor);
                     RecieveCoin(coin);
@@ -272,7 +292,7 @@ public class CoinTray : MonoBehaviour
                 .SetDelay(CreativeSettings.Instance.HighlightInterval * index)
                 .OnKill(() =>
                 {
-                    coin.transform.localScale = Vector3.one;
+                    coin.transform.localScale = coinScale;
                 });
         }
     }
@@ -332,6 +352,7 @@ public class CoinTray : MonoBehaviour
                 transform);
 
             coin.SetColorType(color);
+            coin.transform.localScale = coinScale;
 
             coin.transform.DOKill();
             coin.transform.DOJump(
@@ -419,6 +440,7 @@ public class CoinTray : MonoBehaviour
 
             float cardJumpInterval = GetTransferInterval();
             coin.transform.DOKill();
+            coin.transform.localScale = coinScale; // Apply destination tray scale immediately
             float delay = cardJumpInterval * i;
             coin.transform.DOJump(
                 endValue: targetPosition,
@@ -430,6 +452,7 @@ public class CoinTray : MonoBehaviour
                 .OnKill(() =>
                 {
                     coin.transform.position = targetPosition;
+                    coin.transform.localScale = coinScale;
                     if (autoMerge)
                     {
                         Merge();
@@ -526,6 +549,7 @@ public class CoinTray : MonoBehaviour
             }
 
             newCoin.SetColorType(colorTypes[i]);
+            newCoin.transform.localScale = coinScale;
             coins.Add(newCoin);
         }
 
@@ -637,6 +661,7 @@ public class CoinTray : MonoBehaviour
             }
 
             newCoin.SetColorType(color);
+            newCoin.transform.localScale = coinScale;
             coins.Add(newCoin);
             colorTypes.Add(color);
         }
