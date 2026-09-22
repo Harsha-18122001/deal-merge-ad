@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 797ee6cf597cfe04483db55364d80849, type: 3}
   m_Name: 2
   m_EditorClassIdentifier: 
-  coinMaterial: {fileID: 2100000, guid: 3bf438950183ace4cab805e1ec0759e6, type: 2}
-  moneyMaterial: {fileID: 2100000, guid: d87bd209a80f65a4cafdf6154d8cf378, type: 2}
+  coinMaterial: {fileID: 2100000, guid: e17ae838cda724d528d2353b6408fd32, type: 2}
+  moneyMaterial: {fileID: 2100000, guid: e17ae838cda724d528d2353b6408fd32, type: 2}
   targetMaterial: {fileID: 0}
   fxMaterial: {fileID: 0}
   targetHighlight: {fileID: 0}
   <NextColor>k__BackingField: {fileID: 11400000, guid: a67589d61ea3a284894ca0193a25aa10, type: 2}
-  spriteColor: {r: 0.19428135, g: 0.6320754, b: 0.014907437, a: 1}
+  spriteColor: {r: 1, g: 1, b: 1, a: 1}

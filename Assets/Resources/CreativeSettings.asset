@@ -17,24 +17,32 @@ MonoBehaviour:
   highlightOffset: 0.5
   highlightInterval: 0.03
   cardHalfHeight: 0.5
-  jumpDuration: 0.3
   jumpHeight: 2
-  dealSpawnCount: 3
+  jumpDuration: 0.3
   dealJumpNumJumps: 1
   dealJumpEase: 1
-  dealJumpInterval: 0.05
+  dealJumpInterval: 0.1
   enableDealJumpRotation: 0
   dealJumpRotation: {x: 0, y: 0, z: 0}
   dealJumpRotateMode: 1
   dealJumpRotationEase: 1
+  dealSpawnCount: 3
+  cardJumpHeight: 2
+  cardJumpNumJumps: 1
+  useFixedCardJumpDuration: 0
+  fixedCardJumpDuration: 1
+  cardJumpDuration: 6
+  cardJumpEase: 4
+  cardJumpInterval: 0.05
+  enableCardJumpRotation: 0
+  cardJumpRotation: {x: 0, y: 0, z: 0}
+  cardJumpRotateMode: 1
+  cardJumpRotationEase: 2
   colorTypes:
   - {fileID: 11400000, guid: e96c55417ed00e444a2f4b9c7539246f, type: 2}
   - {fileID: 11400000, guid: ed5bae70908d0fc45b2ff870cce91049, type: 2}
   - {fileID: 11400000, guid: a67589d61ea3a284894ca0193a25aa10, type: 2}
   - {fileID: 11400000, guid: 3118cfb0bb16f8f488d3bbec14716cc8, type: 2}
-  cardJumpHeight: 2
-  cardJumpDuration: 10
-  cardJumpInterval: 0.1
   minAdjacentCount: 2
   maxAdjacentCount: 3
   spawnableColors:
