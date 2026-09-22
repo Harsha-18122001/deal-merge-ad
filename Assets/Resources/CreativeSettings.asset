@@ -20,8 +20,13 @@ MonoBehaviour:
   jumpDuration: 0.3
   jumpHeight: 2
   dealSpawnCount: 3
-  minAdjacentCount: 2
-  maxAdjacentCount: 3
+  dealJumpNumJumps: 1
+  dealJumpEase: 1
+  dealJumpInterval: 0.05
+  enableDealJumpRotation: 0
+  dealJumpRotation: {x: 0, y: 0, z: 0}
+  dealJumpRotateMode: 1
+  dealJumpRotationEase: 1
   colorTypes:
   - {fileID: 11400000, guid: e96c55417ed00e444a2f4b9c7539246f, type: 2}
   - {fileID: 11400000, guid: ed5bae70908d0fc45b2ff870cce91049, type: 2}
@@ -29,7 +34,9 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 3118cfb0bb16f8f488d3bbec14716cc8, type: 2}
   cardJumpHeight: 2
   cardJumpDuration: 10
-  cardJumpInterval: 0.035
+  cardJumpInterval: 0.1
+  minAdjacentCount: 2
+  maxAdjacentCount: 3
   spawnableColors:
   - {fileID: 11400000, guid: e96c55417ed00e444a2f4b9c7539246f, type: 2}
   - {fileID: 11400000, guid: ed5bae70908d0fc45b2ff870cce91049, type: 2}

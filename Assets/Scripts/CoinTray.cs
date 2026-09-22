@@ -26,6 +26,71 @@ public class CoinTray : MonoBehaviour
     [SerializeField] private SpriteRenderer lockSpriteRenderer;
     [SerializeField] private SpriteRenderer mergeOutline;
 
+    [Header("Jump Animation Override")]
+    [Tooltip("If checked, this tray will use its own jump settings instead of CreativeSettings")]
+    [SerializeField] private bool overrideJumpSettings = false;
+
+    [Header("Transfer Jump (Coins moving to this tray)")]
+    [SerializeField] private float transferJumpHeight = 2f;
+    [SerializeField] private int transferNumJumps = 1;
+    [SerializeField] private bool useFixedTransferDuration = false;
+    [SerializeField] private float fixedTransferDuration = 0.35f;
+    [Tooltip("If useFixedTransferDuration is false, duration = Mathf.Sqrt(distance) / transferSpeedDivider")]
+    [SerializeField] private float transferSpeedDivider = 10f;
+    [SerializeField] private Ease transferJumpEase = Ease.Linear;
+    [SerializeField] private float transferCoinInterval = 0.035f;
+    [SerializeField] private bool enableTransferRotation = true;
+    [SerializeField] private Vector3 transferRotation = new Vector3(180, 0, 180);
+    [SerializeField] private RotateMode transferRotateMode = RotateMode.FastBeyond360;
+    [SerializeField] private Ease transferRotationEase = Ease.InSine;
+
+    [Header("Deal Jump (If this tray deals coins)")]
+    [SerializeField] private float dealJumpHeight = 2f;
+    [SerializeField] private float dealJumpDuration = 0.3f;
+    [SerializeField] private int dealNumJumps = 1;
+    [SerializeField] private Ease dealJumpEase = Ease.Linear;
+    [SerializeField] private float dealCoinInterval = 0.05f;
+    [SerializeField] private bool enableDealRotation = false;
+    [SerializeField] private Vector3 dealRotation = Vector3.zero;
+    [SerializeField] private RotateMode dealRotateMode = RotateMode.FastBeyond360;
+    [SerializeField] private Ease dealRotationEase = Ease.Linear;
+
+    public bool OverrideJumpSettings { get => overrideJumpSettings; set => overrideJumpSettings = value; }
+
+    public float GetTransferJumpHeight() => overrideJumpSettings ? transferJumpHeight : CreativeSettings.Instance.CardJumpHeight;
+    public int GetTransferNumJumps() => overrideJumpSettings ? transferNumJumps : CreativeSettings.Instance.CardJumpNumJumps;
+    public Ease GetTransferJumpEase() => overrideJumpSettings ? transferJumpEase : CreativeSettings.Instance.CardJumpEase;
+    public float GetTransferInterval() => overrideJumpSettings ? transferCoinInterval : CreativeSettings.Instance.CardJumpInterval;
+    public bool GetEnableTransferRotation() => overrideJumpSettings ? enableTransferRotation : CreativeSettings.Instance.EnableCardJumpRotation;
+    public Vector3 GetTransferRotation() => overrideJumpSettings ? transferRotation : CreativeSettings.Instance.CardJumpRotation;
+    public RotateMode GetTransferRotateMode() => overrideJumpSettings ? transferRotateMode : CreativeSettings.Instance.CardJumpRotateMode;
+    public Ease GetTransferRotationEase() => overrideJumpSettings ? transferRotationEase : CreativeSettings.Instance.CardJumpRotationEase;
+
+    public float CalculateTransferDuration(float distance)
+    {
+        bool useFixed = overrideJumpSettings ? useFixedTransferDuration : CreativeSettings.Instance.UseFixedCardJumpDuration;
+        if (useFixed)
+        {
+            return overrideJumpSettings ? fixedTransferDuration : CreativeSettings.Instance.FixedCardJumpDuration;
+        }
+        else
+        {
+            float speedDiv = overrideJumpSettings ? transferSpeedDivider : CreativeSettings.Instance.CardJumpDuration;
+            if (speedDiv <= 0.0001f) speedDiv = 1f;
+            return Mathf.Sqrt(distance) / speedDiv;
+        }
+    }
+
+    public float GetDealJumpHeight() => overrideJumpSettings ? dealJumpHeight : CreativeSettings.Instance.JumpHeight;
+    public float GetDealJumpDuration() => overrideJumpSettings ? dealJumpDuration : CreativeSettings.Instance.JumpDuration;
+    public int GetDealNumJumps() => overrideJumpSettings ? dealNumJumps : CreativeSettings.Instance.DealJumpNumJumps;
+    public Ease GetDealJumpEase() => overrideJumpSettings ? dealJumpEase : CreativeSettings.Instance.DealJumpEase;
+    public float GetDealInterval() => overrideJumpSettings ? dealCoinInterval : CreativeSettings.Instance.DealJumpInterval;
+    public bool GetEnableDealRotation() => overrideJumpSettings ? enableDealRotation : CreativeSettings.Instance.EnableDealJumpRotation;
+    public Vector3 GetDealRotation() => overrideJumpSettings ? dealRotation : CreativeSettings.Instance.DealJumpRotation;
+    public RotateMode GetDealRotateMode() => overrideJumpSettings ? dealRotateMode : CreativeSettings.Instance.DealJumpRotateMode;
+    public Ease GetDealRotationEase() => overrideJumpSettings ? dealRotationEase : CreativeSettings.Instance.DealJumpRotationEase;
+
     private MeshRenderer trayMesh;
     private void Awake()
     {
@@ -248,7 +313,7 @@ public class CoinTray : MonoBehaviour
         if (startPosition == null)
             return;
         int startIndex = coins.Count;
-        float delay = 0.05f;
+        float delay = GetDealInterval();
 
         // One random color for the entire deal
         ColorType color = CreativeSettings.Instance.GetRandomColorType();
@@ -268,13 +333,22 @@ public class CoinTray : MonoBehaviour
 
             coin.SetColorType(color);
 
+            coin.transform.DOKill();
             coin.transform.DOJump(
                     targetPosition,
-                    CreativeSettings.Instance.JumpHeight,
-                    1,
-                    CreativeSettings.Instance.JumpDuration)
-                .SetEase(Ease.Linear)
+                    GetDealJumpHeight(),
+                    GetDealNumJumps(),
+                    GetDealJumpDuration())
+                .SetEase(GetDealJumpEase())
                 .SetDelay(delay * i);
+
+            if (GetEnableDealRotation())
+            {
+                coin.transform.DORotate(GetDealRotation(), GetDealJumpDuration(), GetDealRotateMode())
+                    .SetEase(GetDealRotationEase())
+                    .SetDelay(delay * i)
+                    .OnComplete(() => coin.transform.localRotation = Quaternion.Euler(eulerRotation));
+            }
 
             coins.Add(coin);
         }
@@ -341,18 +415,17 @@ public class CoinTray : MonoBehaviour
             Vector3 targetPosition = startPosition.position.GetStackedPosition(coins.Count, stackDirection, eulerRotation, stackHeightOffset);
 
             float distance = (targetPosition - coin.transform.position).magnitude;
-            float adjustedDistance = Mathf.Sqrt(distance); // magic line
-            float cardJumpDuration = adjustedDistance / CreativeSettings.Instance.CardJumpDuration;
+            float cardJumpDuration = CalculateTransferDuration(distance);
 
-            float cardJumpInterval = CreativeSettings.Instance.CardJumpInterval;
+            float cardJumpInterval = GetTransferInterval();
             coin.transform.DOKill();
             float delay = cardJumpInterval * i;
             coin.transform.DOJump(
                 endValue: targetPosition,
-                jumpPower: CreativeSettings.Instance.CardJumpHeight,
-                numJumps: 1,
+                jumpPower: GetTransferJumpHeight(),
+                numJumps: GetTransferNumJumps(),
                 duration: cardJumpDuration)
-                .SetEase(Ease.Linear)
+                .SetEase(GetTransferJumpEase())
                 .SetDelay(delay)
                 .OnKill(() =>
                 {
@@ -363,10 +436,17 @@ public class CoinTray : MonoBehaviour
                     }
                 });
 
-            coin.transform.DORotate(new Vector3(180, 0, 180), cardJumpDuration, RotateMode.FastBeyond360)
-                 .SetEase(Ease.InSine)
-                .SetDelay(delay)
-                .OnComplete(() => coin.transform.rotation = Quaternion.identity);
+            if (GetEnableTransferRotation())
+            {
+                coin.transform.DORotate(GetTransferRotation(), cardJumpDuration, GetTransferRotateMode())
+                    .SetEase(GetTransferRotationEase())
+                    .SetDelay(delay)
+                    .OnComplete(() => coin.transform.localRotation = Quaternion.Euler(eulerRotation));
+            }
+            else
+            {
+                coin.transform.localRotation = Quaternion.Euler(eulerRotation);
+            }
 
             RecieveCoin(coin);
             i++;
