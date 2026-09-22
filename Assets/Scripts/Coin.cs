@@ -98,6 +98,35 @@ public class Coin : MonoBehaviour
         MeshRenderer.sharedMaterial = material;
     }
 
+    private Transform _coinChild;
+    private Transform CoinChild
+    {
+        get
+        {
+            if (_coinChild == null)
+                _coinChild = transform.Find("Coin_child");
+            return _coinChild;
+        }
+    }
+
+    /// <summary>
+    /// Applies scale to the Coin_child sub-object (visual mesh), leaving the root
+    /// transform scale untouched so physics / collider sizing is unaffected.
+    /// Falls back to the root if Coin_child does not exist.
+    /// </summary>
+    public void SetVisualScale(Vector3 scale)
+    {
+        Transform target = CoinChild != null ? CoinChild : transform;
+        target.localScale = scale;
+    }
+
+    /// <summary>Returns the current visual scale (from Coin_child if it exists).</summary>
+    public Vector3 GetVisualScale()
+    {
+        Transform target = CoinChild != null ? CoinChild : transform;
+        return target.localScale;
+    }
+
     internal void HighLight(bool highlight)
     {
         if (material == null)

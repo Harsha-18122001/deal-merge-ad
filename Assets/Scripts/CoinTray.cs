@@ -151,7 +151,7 @@ public class CoinTray : MonoBehaviour
         foreach (var coin in coins)
         {
             if (coin != null)
-                coin.transform.localScale = coinScale;
+                coin.SetVisualScale(coinScale);
         }
 #if UNITY_EDITOR
         UnityEditor.EditorUtility.SetDirty(this);
@@ -164,7 +164,7 @@ public class CoinTray : MonoBehaviour
         for (int i = 0; i < coins.Count; i++)
         {
             coins[i].transform.position = startPosition.position.GetStackedPosition(i, stackDirection, eulerRotation, stackHeightOffset);
-            coins[i].transform.localScale = coinScale;
+            coins[i].SetVisualScale(coinScale);
         }
     }
 
@@ -211,15 +211,19 @@ public class CoinTray : MonoBehaviour
 
             if (coins[i].ColorType != colorType) break;
             coin = coins[i];
-            HighlightSeq.Insert(
-                CreativeSettings.Instance.HighlightInterval * J,
-                coin.transform.DOPunchScale(new Vector3(0.15f, 0.05f, 0f), .3f, vibrato: 1)
-                    .SetEase(Ease.Linear)
-                    .OnKill(() =>
-                    {
-                        coin.transform.localScale = coinScale;
-                    })
-            );
+            {
+                Transform coinChildM = coin.transform.Find("Coin_child");
+                Transform punchTargetM = coinChildM != null ? coinChildM : coin.transform;
+                HighlightSeq.Insert(
+                    CreativeSettings.Instance.HighlightInterval * J,
+                    punchTargetM.DOPunchScale(new Vector3(0.15f, 0.05f, 0f), .3f, vibrato: 1)
+                        .SetEase(Ease.Linear)
+                        .OnKill(() =>
+                        {
+                            coin.SetVisualScale(coinScale);
+                        })
+                );
+            }
 
 
             mergeSeq.Join(coin.transform.DOMove(pos, duration)
@@ -254,8 +258,10 @@ public class CoinTray : MonoBehaviour
                                    position: GetStackedPosition(startIndex + i),
                                    rotation: Quaternion.Euler(eulerRotation),
                                    parent: transform);
-                    popSeq.Join(coin.transform.DOScale(coinScale, .2f).From(Vector3.zero).SetEase(Ease.OutBack));
-                    coin.transform.localScale = Vector3.zero;
+                    Transform coinChildT = coin.transform.Find("Coin_child");
+                    Transform scaleTarget = coinChildT != null ? coinChildT : coin.transform;
+                    scaleTarget.localScale = Vector3.zero;
+                    popSeq.Join(scaleTarget.DOScale(coinScale, .2f).From(Vector3.zero).SetEase(Ease.OutBack));
                     coin.SetColorType(colorType.NextColor);
                     RecieveCoin(coin);
                     isMerging= false;
@@ -287,13 +293,17 @@ public class CoinTray : MonoBehaviour
             coin.transform.DOMove(GetStackedPosition(i).AddY(CreativeSettings.Instance.HighlightOffset * multiplier), .1f)
                 .SetEase(Ease.InBack)
                 .SetDelay(CreativeSettings.Instance.HighlightInterval * index);
-            coin.transform.DOPunchScale(new Vector3(0.15f, 0.05f, 0f), .3f, vibrato: 1)
-                .SetEase(Ease.Linear)
-                .SetDelay(CreativeSettings.Instance.HighlightInterval * index)
-                .OnKill(() =>
-                {
-                    coin.transform.localScale = coinScale;
-                });
+            {
+                Transform coinChildT2 = coin.transform.Find("Coin_child");
+                Transform punchTarget = coinChildT2 != null ? coinChildT2 : coin.transform;
+                punchTarget.DOPunchScale(new Vector3(0.15f, 0.05f, 0f), .3f, vibrato: 1)
+                    .SetEase(Ease.Linear)
+                    .SetDelay(CreativeSettings.Instance.HighlightInterval * index)
+                    .OnKill(() =>
+                    {
+                        coin.SetVisualScale(coinScale);
+                    });
+            }
         }
     }
 
@@ -352,7 +362,7 @@ public class CoinTray : MonoBehaviour
                 transform);
 
             coin.SetColorType(color);
-            coin.transform.localScale = coinScale;
+            coin.SetVisualScale(coinScale);
 
             coin.transform.DOKill();
             coin.transform.DOJump(
@@ -440,7 +450,7 @@ public class CoinTray : MonoBehaviour
 
             float cardJumpInterval = GetTransferInterval();
             coin.transform.DOKill();
-            coin.transform.localScale = coinScale; // Apply destination tray scale immediately
+            coin.SetVisualScale(coinScale); // Apply destination tray scale immediately
             float delay = cardJumpInterval * i;
             coin.transform.DOJump(
                 endValue: targetPosition,
@@ -452,7 +462,7 @@ public class CoinTray : MonoBehaviour
                 .OnKill(() =>
                 {
                     coin.transform.position = targetPosition;
-                    coin.transform.localScale = coinScale;
+                    coin.SetVisualScale(coinScale);
                     if (autoMerge)
                     {
                         Merge();
@@ -549,7 +559,7 @@ public class CoinTray : MonoBehaviour
             }
 
             newCoin.SetColorType(colorTypes[i]);
-            newCoin.transform.localScale = coinScale;
+            newCoin.SetVisualScale(coinScale);
             coins.Add(newCoin);
         }
 
@@ -661,7 +671,7 @@ public class CoinTray : MonoBehaviour
             }
 
             newCoin.SetColorType(color);
-            newCoin.transform.localScale = coinScale;
+            newCoin.SetVisualScale(coinScale);
             coins.Add(newCoin);
             colorTypes.Add(color);
         }
